@@ -37,18 +37,18 @@
                 <el-form-item label="商品名称">
                     <el-input v-model="formItem.name"></el-input>
                 </el-form-item>
-                <el-form-item label="图片">
+                <el-form-item label="上传照片">
                     <el-upload
-                        action="http://localhost:1122/commoAdd"
-                        accept=".jpg,.jpeg,.png"
+                        name="urlName"
+                        action="http://localhost:1122/upload"
+                        accept=".jpg,.jpeg,.png,.docx"
+                        :file-list="formItem.urlName"
                         list-type="picture-card"
-                        :file-list="formItem.url"
-                        :before-remove="beforeRemove"
-                        :on-progress = "progress"
+                        :on-progress="progress"
                         :limit="1"
-                        :on-exceed="aaa"
                     >
-                        <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
+                        <img :src="formItem.urlName.url" alt="">
+                        <i class="el-icon-plus"></i>
                     </el-upload>
                 </el-form-item>
                 <el-form-item label="型号">
@@ -68,13 +68,14 @@
                 </el-form-item> 
                 <el-form-item>
                     <el-button type="submit" @click="onSubmit">确定</el-button>
-                    <el-button @click="onCancel">取消</el-button>
+                    <el-button @click="onCancel('formItem')">取消</el-button>
                 </el-form-item>
             </el-form>
         </el-dialog>
-        <el-dialog title="编辑商品信息" width="50%" :visible.sync = "visibleEdit">
-            
-        </el-dialog>
+
+        <!-- <el-dialog title="编辑商品信息" width="50%" :visible.sync = "visibleEdit">
+            13246546
+        </el-dialog> -->
     </div>
 </template>
 
@@ -88,7 +89,7 @@
                 formItem:{
                     name:'',
                     model:'',
-                    url:[],
+                    urlName:[],
                     price:'',
                     firm:'',
                     iphone:'',
@@ -97,31 +98,31 @@
             }
         },
         created(){
-            this.$axios.get('/api/commo').then(data => {
-                if(data != ''){
-                    let inif = data.data.map((item) => {
-                        if(item.url.length == 0){
-                            item.url.push({
-                                url:'../../static/1.jpg'
-                            })
-                        }
-                        return item
-                    })
-                    this.data = inif
-                }else{
-                    this.$notify.error({
-                        title: '错误',
-                        duration:0,
-                        message: '没有获取到数据库'
-                    });
-                }
-            },err => {
-                this.$notify.error({
-                    title: '错误',
-                    duration:0,
-                    message: '没有获取到数据库'
-                });
-            })
+            // this.$axios.get('/api/commo').then(data => {
+            //     if(data != ''){
+            //         let inif = data.data.map((item) => {
+            //             if(item.url.length == 0){
+            //                 item.url.push({
+            //                     url:'../../static/1.jpg'
+            //                 })
+            //             }
+            //             return item
+            //         })
+            //         this.data = inif
+            //     }else{
+            //         this.$notify.error({
+            //             title: '错误',
+            //             duration:0,
+            //             message: '没有获取到数据库'
+            //         });
+            //     }
+            // },err => {
+            //     this.$notify.error({
+            //         title: '错误',
+            //         duration:0,
+            //         message: '没有获取到数据库'
+            //     });
+            // })
         },
         methods:{
             // 打开添加弹出框
@@ -132,45 +133,51 @@
                 console.log(id)
                 console.log(num)
             },
-              // 添加按钮
+            // 添加按钮
             onSubmit(){
-                let string = this.$qs.stringify(this.$refs.formItem.model)
-                if(this.formItem == "" || this.price == ""){
-                    this.visible = false
+                
+                // multer 传输图片
+                let formData = new FormData();
+                if(this.formItem.name == ""){
+                    // this.visible = false
                     this.$notify.error({
                         title: '错误',
-                        message: '请填写名称和价钱'
+                        message: '请填写名称'
                     });
                 }else{
-                    this.visible = false
-                    this.$axios.post('/api/commoAdd',string)
-                    this.data.push(this.formItem)
+                    // this.visible = false
+
+                    formData.append('urlName',this.$refs.formItem.model.urlName[0].url)
+                    formData.append('formItem',JSON.stringify(this.$refs.formItem.model))
+                    this.$axios.post('/api/upload',formData,{headers:{"Conter-type":"multipart/form-data"}}).then((req,res) => {
+                        console.log(req.url)
+                    })
+
+                    // this.data.push(this.formItem)
                     this.$notify({
                         title:"成功",
                         message:'添加商品成功',
                         type:'success'
                     })
+
                 }
-            },
-            aaa(aa,bb){
-                this.$message({
-                    showClose: true,
-                    message: '照片只能上传一张',
-                    type: 'warning'
-                });
+
             },
             progress(res,file){
                 let prog = {name:file.name,url:file.url}
-                this.formItem.url.push(prog)
+                // console.log(prog)
+                this.formItem.urlName.push(prog)
             },
             beforeRemove(){
                 this.$message({
                     type: 'success',
                     message: '删除成功!'
                 });
+            },
+            onCancel(formName){
+                this.$refs[formName].resetFields();
+                console.log(this.$refs[formName])
             }
-          
-
         }
     }
 </script>

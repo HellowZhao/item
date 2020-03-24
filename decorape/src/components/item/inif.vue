@@ -8,6 +8,7 @@
         <el-button icon="el-icon-edit" class="edit" @click="add"></el-button>
       </el-col>
     </el-row>
+    <!-- 人员展示 -->
     <el-row :gutter="10">
       <el-col :md="12" v-for="(item,i) in data" :key="i">
         <el-card>
@@ -145,7 +146,7 @@ export default {
     // 添加用户信息
     onSubmit() {
       let aa = this.$qs.stringify(this.$refs.formItem.model)
-  
+      console.log(aa)
       if(this.formItem.name == '' || this.formItem.iphone == '' || this.formItem.client == ''){
         this.visible = false
         this.$notify.error({
