@@ -9,7 +9,7 @@
             </el-col>
         </el-row>
         <!-- 展示列表 -->
-        <el-row :gutter="10">
+        <!-- <el-row :gutter="10">
             <el-col :md="12" v-for="(item,i) in data" :key="i">
                 <el-card>
                     <div slot="header">
@@ -30,7 +30,7 @@
                     </el-row>
                 </el-card>
             </el-col>
-        </el-row>
+        </el-row> -->
         <!-- 添加 弹出框 -->
         <el-dialog title="添加商品信息" width="50%" :visible.sync = "visible">
             <el-form ref="formItem" :model="formItem" label-width="80px">
@@ -38,16 +38,9 @@
                     <el-input v-model="formItem.name"></el-input>
                 </el-form-item>
                 <el-form-item label="上传照片">
-                    <el-upload
-                        name="urlName"
-                        action="http://localhost:1122/upload"
-                        accept=".jpg,.jpeg,.png,.docx"
-                        :file-list="formItem.urlName"
-                        list-type="picture-card"
-                        :on-progress="progress"
-                        :limit="1"
-                    >
-                        <img :src="formItem.urlName.url" alt="">
+                    <el-upload action="http://localhost:1122/upload" accept=".jpg,.jpeg,.png" :auto-upload="false" :limit="1" 
+                    :on-change="upload"  :file-list="formItem.urlName" list-type="picture-card" ref="upload" 
+                    :headers = "headers" >
                         <i class="el-icon-plus"></i>
                     </el-upload>
                 </el-form-item>
@@ -67,7 +60,7 @@
                     <el-input v-model="formItem.describe"></el-input>
                 </el-form-item> 
                 <el-form-item>
-                    <el-button type="submit" @click="onSubmit">确定</el-button>
+                    <el-button @click="onSubmit(formItem)" type="primary">确定</el-button>
                     <el-button @click="onCancel('formItem')">取消</el-button>
                 </el-form-item>
             </el-form>
@@ -76,6 +69,7 @@
         <!-- <el-dialog title="编辑商品信息" width="50%" :visible.sync = "visibleEdit">
             13246546
         </el-dialog> -->
+
     </div>
 </template>
 
@@ -85,7 +79,9 @@
         data(){
             return {
                 visible:false,
-                data:[],
+                headers:{
+                    'Content-Type': 'multipart/form-data' 
+                },
                 formItem:{
                     name:'',
                     model:'',
@@ -129,15 +125,9 @@
             add(){
                 this.visible = true
             },
-            kou(id,num){
-                console.log(id)
-                console.log(num)
-            },
             // 添加按钮
-            onSubmit(){
-                
+            onSubmit(f){
                 // multer 传输图片
-                let formData = new FormData();
                 if(this.formItem.name == ""){
                     // this.visible = false
                     this.$notify.error({
@@ -147,36 +137,34 @@
                 }else{
                     // this.visible = false
 
-                    formData.append('urlName',this.$refs.formItem.model.urlName[0].url)
+                    let formData = new FormData();
+                    let file = this.$refs.upload.uploadFiles[0]
+                    formData.append('urlName',file.raw)
                     formData.append('formItem',JSON.stringify(this.$refs.formItem.model))
-                    this.$axios.post('/api/upload',formData,{headers:{"Conter-type":"multipart/form-data"}}).then((req,res) => {
-                        console.log(req.url)
+                    this.$axios.post('/api/upload',formData,{ headers: {'Content-Type': 'multipart/form-data' }}).then((req,res) => {
+                        console.log(req)
                     })
 
                     // this.data.push(this.formItem)
-                    this.$notify({
-                        title:"成功",
-                        message:'添加商品成功',
-                        type:'success'
-                    })
-
+                    // this.$notify({
+                    //     title:"成功",
+                    //     message:'添加商品成功',
+                    //     type:'success'
+                    // })
                 }
+            },
+            upload(res,file){
+                this.formItem.urlName.push(file[0])
+            },
 
-            },
-            progress(res,file){
-                let prog = {name:file.name,url:file.url}
-                // console.log(prog)
-                this.formItem.urlName.push(prog)
-            },
-            beforeRemove(){
-                this.$message({
-                    type: 'success',
-                    message: '删除成功!'
-                });
-            },
-            onCancel(formName){
-                this.$refs[formName].resetFields();
-                console.log(this.$refs[formName])
+            // beforeRemove(){
+            //     this.$message({
+            //         type: 'success',
+            //         message: '删除成功!'
+            //     });
+            // },
+            onCancel(data){
+                this.$refs[data].resetFields();
             }
         }
     }
