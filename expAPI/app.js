@@ -1,14 +1,13 @@
 let express = require('express')
 let path = require('path')
-// let fs = require('fs')
 let app = express()
-const connect = require('connect-multiparty')
-const multiparty = connect();
-let qs = require('qs');
-// let formidable = require('formidable')
+let connect = require('connect-multiparty')
+let multiparty = connect()
+let qs = require('qs')
 
 // 部门 详细 信息
 let API = require('./export/model');
+let multer = require('./export/multer')
 
 // 加载静态资源
 app.use(express.static(path.join(__dirname,'import')))  
@@ -23,7 +22,7 @@ app.all("*", function(req, res, next) {
     next();
 });
 
-// 查询数据库
+// 人员接口-查询
 app.get('/',function(req,res){
     API.User.find({},function(err,doc){
         if(err){
@@ -36,17 +35,17 @@ app.get('/',function(req,res){
     })
 })
 
-
-// 保存到数据库
+// 人员接口-保存
 app.all('/user',multiparty,function(req,res,next){
     req.on('data',function(data){
         let dataInif = qs.parse(data.toString())
+        console.log(dataInif)
         let fun = new API.User(dataInif)
         fun.save()
     })
 })
 
-// 修改数据
+// 人员接口-修改
 app.post('/userAmend',multiparty,function(req,res,next){
     req.on('data',function(data){
         let amend = qs.parse(data.toString())
@@ -60,7 +59,7 @@ app.post('/userAmend',multiparty,function(req,res,next){
     })
 })
 
-// 删除数据
+// 人员接口-删除
 app.post('/userRemove',multiparty,function(req,res,next){
     req.on('data',function(data){
         let removeData = qs.parse(data.toString())
@@ -75,7 +74,7 @@ app.post('/userRemove',multiparty,function(req,res,next){
     })
 })
 
-// 数据查询
+// 商品接口-查询
 app.get('/commo',(req,res) => {
     API.Commo.find({},(err,doc) => {
         if(err){
@@ -88,16 +87,36 @@ app.get('/commo',(req,res) => {
     })
 })
 
-// 商品添加
-app.post('/commoAdd',multiparty,function(req,res,next){
-    req.on('data',function(data){
-        let commoAdd = qs.parse(data.toString()) // 信息
-        let add = new API.Commo(commoAdd)
-        add.save();
-    })
+// 商品接口-添加
+app.post('/upload',multer.upload.single('urlName'),(req,res) => {
+    let {size,mimetype,path} = req.file;
+    let types = ['jpg','jpeg','png']
+    let index = mimetype.split('/')[1] 
+    if(size > 100000){
+        return res.send('文件过大')
+    } else  if(types.indexOf[index] == -1){
+        return res.send("上传失败！文件格式不正确")
+    }else{
+
+        res.send(`http://localhost:1122/${path}`)
+        
+    }
+
+    console.log(req.body)
+    console.log(req.file)
 })
 
-// 注册用户
+// app.post('/commoAdd',multiparty,function(req,res,next){
+//     req.on('data',function(data){
+//         let commoAdd = qs.parse(data.toString()) // 信息
+//         res.send(commoAdd)
+//         // console.log(commoAdd)
+//         // let add = new API.Commo(commoAdd)
+//         // add.save();
+//     })
+// })
+
+// 注册接口
 app.post('/register',multiparty,function(req,res,next){
     req.on('data',function(data){
         let registerText = qs.parse(data.toString())
@@ -108,13 +127,12 @@ app.post('/register',multiparty,function(req,res,next){
                 let model = new API.Account(registerText)
                 model.save()
                 res.send("注册成功")
-                
             }
         })
     })
 })
 
-// 用户登录
+// 用户接口
 app.post('/regi',multiparty,(req,res,next) => {
     req.on('data',function(data){
         let regiText = qs.parse(data.toString())
@@ -132,5 +150,7 @@ app.post('/regi',multiparty,(req,res,next) => {
 app.listen(1122,()=>{
     console.log('current listen 1122')
 })
+
+
 
 

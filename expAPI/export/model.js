@@ -40,7 +40,6 @@ let CommoSchema = mongoose.Schema({
     iphone:String,
     describe:String
 })
-
 let Commo = mongoose.model('Commodity',CommoSchema,'commodity')
 exports.Commo = Commo
 
