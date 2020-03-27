@@ -29,12 +29,7 @@ exports.User = User
 let CommoSchema = mongoose.Schema({
     name:String,
     model:String,
-    url:[{
-        name:String,
-        url:String,
-        uid:Number,
-        status:String
-    }],
+    urlName:String,
     price:Number,
     firm:String,
     iphone:String,

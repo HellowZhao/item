@@ -10,7 +10,7 @@ let API = require('./export/model');
 let multer = require('./export/multer')
 
 // 加载静态资源
-app.use(express.static(path.join(__dirname,'import')))  
+app.use('/import',express.static(path.join(__dirname,'import')))  
 
 // 跨域设置
 app.all("*", function(req, res, next) {
@@ -97,13 +97,13 @@ app.post('/upload',multer.upload.single('urlName'),(req,res) => {
     } else  if(types.indexOf[index] == -1){
         return res.send("上传失败！文件格式不正确")
     }else{
-
-        res.send(`http://localhost:1122/${path}`)
-        
+        let formData = JSON.parse(req.body.formItem)
+        formData.urlName = `http://localhost:1122/${path}`
+        let fun = new API.Commo(formData)
+        fun.save()
+        res.send(formData)
     }
 
-    console.log(req.body)
-    console.log(req.file)
 })
 
 // app.post('/commoAdd',multiparty,function(req,res,next){
